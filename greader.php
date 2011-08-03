@@ -9,25 +9,25 @@ class GReader {
     private $userInfo;
     private $authToken;
     private $token;
-    
+
     function __construct($email, $password, $debug = false) {
         $this->debug = $debug;
         $this->login($email, $password);
     }
-    
+
     function __desctruct() {
-        
+        curl_close($this->ch);
     }
-    
+
     function debug($str) {
-        if ($this->debug) {
+        if ((isset($this) && $this->debug) || !isset($this)) {
             echo date('Y-m-d H:i:s ') . $str . "\n";
         }
     }
-    
+
     function request($url, $post_fields = false) {
         $this->debug('Perform ' . ($post_fields ? 'POST' : 'GET') . ' request on ' . $url . ($post_fields ? $this->array_to_str($post_fields) : ''));
-    
+
         $this->ch = curl_init();
 
         curl_setopt($this->ch, CURLOPT_URL, $url);
@@ -45,18 +45,18 @@ class GReader {
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($this->ch, CURLOPT_HEADER, false);
-        
+
         $result = curl_exec($this->ch);
         $this->ch_info = curl_getinfo($this->ch);
-        
+
         if ($this->ch_info['http_code'] != 200) {
             $this->debug('Not HTTP 200 OK: ' . $this->ch_info['http_code']);
             print_r($result);
         }
-        
+
         return $result;
     }
-    
+
     function array_to_str($array) {
         $str = Array();
         foreach ($array as $k=>$v) {
@@ -65,7 +65,7 @@ class GReader {
         }
         return '{' . join(', ', $str) . '}';
     }
-    
+
     function login($email, $password) {
         $post_fields = Array(
             'accountType' => 'GOOGLE',
@@ -74,7 +74,7 @@ class GReader {
             'source'=>'ReaderMigration',
             'service'=>'reader',
         );
-        
+
         $result = $this->request('https://www.google.com/accounts/ClientLogin', $post_fields);
 
         $this->authToken = trim(substr(strstr($result, "Auth"), 5));
@@ -82,19 +82,19 @@ class GReader {
 
         $this->userInfo = $this->getUserInfo();
         $this->debug('User info: ' . $this->array_to_str($this->userInfo));
-        
+
         $this->token = $this->getToken();
         $this->debug('Got token: ' . $this->token);
     }
-    
+
     function getUserInfo() {
         return json_decode($this->request('https://www.google.com/reader/api/0/user-info?output=json'));
     }
-    
+
     function getToken() {
         return trim($this->request('https://www.google.com/reader/api/0/token'));
     }
-    
+
     function getSubscriptions() {
         return json_decode($this->request('https://www.google.com/reader/api/0/subscription/list?output=json'));
     }
@@ -103,7 +103,7 @@ class GReader {
         // Disallowed characters in tag titles: "<>?&/\^
         return json_decode($this->request('https://www.google.com/reader/api/0/tag/list?output=json'));
     }
-    
+
     function editSubscription($id, $title = false, $label = false, $action = 'subscribe') {
         $post_fields = Array(
             's' => $id,
@@ -114,5 +114,14 @@ class GReader {
 
         return json_decode($this->request('https://www.google.com/reader/api/0/subscription/edit?output=json', $post_fields));
     }
-}
 
+    function editEntry($id, $feed_id, $tag) {
+        $post_fields = Array(
+            's' => $feed_id,
+            'a' => $tag,
+            'i' => $id
+        );
+
+        return json_decode($this->request('https://www.google.com/reader/api/0/edit-tag', $post_fields));
+    }
+}
