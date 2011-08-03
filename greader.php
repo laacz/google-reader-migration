@@ -6,7 +6,7 @@ class GReader {
     var $ch_info;
 
     //
-    private $userInfo;
+    var $userInfo;
     private $authToken;
     private $token;
 
@@ -115,7 +115,48 @@ class GReader {
         return json_decode($this->request('https://www.google.com/reader/api/0/subscription/edit?output=json', $post_fields));
     }
 
-    function editEntry($id, $feed_id, $tag) {
+    function getItems($what, $limit = 1024) {
+        $this->debug('Fetching items tagged as "' . $what . '" (' . ($limit ? 'limiting to ' . $limit : 'no limit') . ')');
+        $continuation = '';
+        $return = false;
+        $count = ($limit >= 100 || $limit == 0) ? 100 : $limit;
+        while (true) {
+            $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/contents/user/-/' . $what . '?output=json&n=' . $count . '&c=' . $continuation . '&client=scroll'));
+            $this->debug('Got items: ' . count($result->items). ' pcs');
+
+            if (!$return) {
+                $return = $result;
+            } else {
+                foreach ($result->items as $item) {
+                    $return->items[] = $item;
+                }
+            }
+
+            // Are we done?
+            $continuation = isset($result->continuation) ? $result->continuation : false;
+            if (!$continuation) {
+                break;
+            }
+
+            // Shall we decrease linmit in order not to fetch more than needed?
+            if ($limit && ($count + count($return->items) >= $limit)) {
+                $count = $limit - count($return->items);
+            }
+
+            if ($count == 0) break;
+
+        }
+        return $return;
+    }
+
+    /**
+     * Sets entry tag (category, label). Works for user's tags and com.google (system) states
+     *
+     * $id String Entry id in (for example, tag:google.com,2005:reader/item/71d15223cd83b85d)
+     * $feed_id String Feed's id, from which entry came (for example, feed/http://blog.martindoms.com/feed/)
+     * $tag String Tag to assign to the entry (for example, user/-/state/com.google/starred or user/-/label/SuperLabel)
+     */
+    function setEntryTag($id, $feed_id, $tag) {
         $post_fields = Array(
             's' => $feed_id,
             'a' => $tag,
@@ -124,4 +165,26 @@ class GReader {
 
         return json_decode($this->request('https://www.google.com/reader/api/0/edit-tag', $post_fields));
     }
+
+    /**
+     * Annotates (adds note) and shares (or not:) entry.
+     *
+     * $url String URL to share.
+     * $annotation String Note to add.
+     * $title String Title to assign to shared item.
+     * $snippet String Content (or portion of it) to show.
+     * $share Boolean If true, shares item to followers.
+     */
+    function annotateEntry($url, $annotation, $title, $snippet, $share = false) {
+        $post_fields = Array(
+            'url' => $url,
+            'share' => $share ? 'true' : 'false',
+            'annotation' => $annotation,
+            'title' => $title,
+            'snippet' => $snippet,
+        );
+
+        return json_decode($this->request('https://www.google.com/reader/api/0/item/edit', $post_fields));
+    }
+
 }
