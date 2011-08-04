@@ -28,7 +28,7 @@ foreach ($result->subscriptions as $subscription) {
 
 // Move starred items
 GReader::debug('Moving starred items');
-$result = $source->getItems('state/com.google/starred', 0);
+$result = $source->getItems('user/-/state/com.google/starred', 0);
 $i = 0;
 foreach ($result->items as $entry) {
     $i++;
@@ -48,7 +48,7 @@ foreach ($result->items as $entry) {
  **/
 
 
-$result = $destination->getItems('state/com.google/broadcast', 0);
+$result = $destination->getItems('user/-/state/com.google/broadcast', 0);
 $already_shared = Array();
 foreach ($result->items as $entry) {
     $already_shared[$entry->alternate[0]->href] = $entry;
@@ -56,7 +56,7 @@ foreach ($result->items as $entry) {
 }
 
 GReader::debug('Resharing sharred items');
-$result = $source->getItems('state/com.google/broadcast', 0);
+$result = $source->getItems('user/-/state/com.google/broadcast', 10);
 // Let's do that, so we re-add shared items in reverse order.
 $result->items = array_reverse($result->items);
 $i = 0;
@@ -69,7 +69,10 @@ foreach ($result->items as $entry) {
         GReader::debug('Already transferred');
     } else {
         GReader::debug('Resharing');
+        $ret = $destination->setEntryTag($entry->id, preg_replace('|^(user/)\d+(/.+)$|', '\1-\2', $entry->origin->streamId), "user/-/state/com.google.com/broadcast");
+        print_r($ret);
     }
+    break;
     /**
     $annotation = '';
     GReader::debug('Resharing item ' . $i . ' of ' . count($result->items));
@@ -82,4 +85,3 @@ foreach ($result->items as $entry) {
     }
     **/
 }
-

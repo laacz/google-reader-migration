@@ -202,7 +202,7 @@ class GReader {
     /**
      * Fetches items from a stream.
      *
-     *  @param string $what Stream name. For example 'state/com.google/starred' or 'state/com.google/broadcast'.
+     *  @param string $what Stream name. For example 'user/-/state/com.google/starred' or 'user/-/state/com.google/broadcast'.
      *  @param number $limit Number How many items to fetch. If zero (or false [or an empty array:>]), fetches all (beware!).
      *
      *  @return object (->items is an array with entries).
@@ -213,7 +213,7 @@ class GReader {
         $return = false;
         $count = ($limit >= 100 || !$limit) ? 100 : $limit;
         while (true) {
-            $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/contents/user/-/' . $what . '?output=json&n=' . $count . '&c=' . $continuation . '&client=scroll'));
+            $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/contents/' . $what . '?output=json&n=' . $count . '&c=' . $continuation . '&client=scroll'));
             $this->debug('Got items: ' . count($result->items). ' pcs');
 
             if (!$return) {
