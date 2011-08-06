@@ -12,11 +12,19 @@ What I am able to mgirate now
 * Subscription labels (tags, folders)
 * Starred items
 * Shared items with annotations (notes, if they have one)
+* Read and unread items [1]
+* Friends I follow [2]
+
+[1] Read items migration is a little shaky. Although item is being marked as unread,
+    it does not work. Also - items lose feature (in web interface, at least) of
+    being marked unread at all.
+
+[2] Friends are being added, but Google Reader goes nuts about that. All freshly
+    added friends ar anonymouses, and have mystical ID's.
 
 What I will be able to migrate once finished
 --------------------------------------------
 
-* Friends I follow
 * Add OAuth support to greader library
 
 What won't be migrated?
