@@ -222,7 +222,7 @@ class GReader {
         $return = false;
         $count = ($limit >= 100 || !$limit) ? 100 : $limit;
         while (true) {
-            $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/contents/' . $what . '?output=json&n=' . $count . '&c=' . $continuation . '&client=scroll'));
+            $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/contents/' . rawurlencode($what) . '?output=json&n=' . $count . '&c=' . $continuation . '&client=scroll'));
             $this->debug('Got items: ' . count($result->items). ' pcs');
 
             if (!$return) {

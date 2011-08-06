@@ -11,15 +11,25 @@ What I am able to mgirate now
 * Subscriptions
 * Subscription labels (tags, folders)
 * Starred items
+* Shared items with annotations (notes, if they have one)
 
 What I will be able to migrate once finished
 --------------------------------------------
 
-* Shared items with annotations (notes, if they have one)
 * Friends I follow
-* Yet unread items
-* Permanently marked as unread items
 * Add OAuth support to greader library
+
+What won't be migrated?
+-----------------------
+
+### Entries having same tag as one or more feeds
+
+That's because tags and labels share same notation in Google Reader. If we
+label, let's say, feed with 'Good', all items, coming from this feed automatically
+get tag 'Good'. So, by tagging any other feeds' entry with 'Good', you just
+append that entry to bunch of others. If I would try to fetch all items, which
+are labelled as 'Good', then migration could end up taking a year, if feeds
+with that label contain lots of items.
 
 Files
 -----
