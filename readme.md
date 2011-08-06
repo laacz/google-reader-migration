@@ -28,3 +28,28 @@ meaning of each file.
 
 @greader.php contains Google Reader API stuff.
 @migrate.php contains migration script.
+
+Links
+-----
+
+There is no single place for Google Reader API related information. API itself
+is not official (not oficially released to public by Google).
+
+### API itself
+
+* http://www.google.com/reader/api
+
+### Unofficial API documentation
+
+* http://groups.google.com/group/fougrapi
+* http://code.google.com/p/trystero/wiki/API
+* http://www.consumedbycode.com/code/ci_google_reader
+* http://blog.martindoms.com/2009/08/15/using-the-google-reader-api-part-1/
+* http://blog.martindoms.com/2009/10/16/using-the-google-reader-api-part-2/
+* http://blog.martindoms.com/2010/01/20/using-the-google-reader-api-part-3/
+
+### Community
+
+* http://code.google.com/p/pyrfeed/wiki/GoogleReaderAPI
+* http://stackoverflow.com/
+* http://quota.com/
