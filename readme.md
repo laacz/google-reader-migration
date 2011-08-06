@@ -19,6 +19,7 @@ What I will be able to migrate once finished
 * Friends I follow
 * Yet unread items
 * Permanently marked as unread items
+* Add OAuth support to greader library
 
 Files
 -----
