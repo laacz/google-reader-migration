@@ -15,6 +15,7 @@ $src_subs = $source->getSubscriptions();
 $dst_subs = $destination->getSubscriptions();
 
 log_msg('Moving subscriptions and labels');
+log_msg('Source has ' . count($src_subs->subscriptions) . ' and destination has ' . count($dst_subs->subscriptions));
 foreach ($src_subs->subscriptions as $sidx=>$ssub) {
 
     $sub_found = false;
@@ -59,3 +60,26 @@ foreach ($src_subs->subscriptions as $sidx=>$ssub) {
 
 }
 
+
+/** Sync stgarred items **/
+$src_starred = $source->getItems('user/-/state/com.google/starred', 0);
+$dst_starred = $destination->getItems('user/-/state/com.google/starred', 0);
+log_msg('Moving starred items');
+log_msg('Source has ' . count($src_starred->items) . ' and destination has ' . count($dst_starred->items));
+
+foreach ($src_starred->items as $sitem) {
+    //print_r($sitem);
+    $moved = false;
+    foreach ($dst_starred->items as $ditem) {
+        if ($ditem->id == $sitem->id) {
+            $moved = true;
+            break;
+        }
+    }
+
+    if ($moved === false) {
+        log_msg('Moving item "' . $sitem->id . '"');
+        $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/starred');
+    }
+
+}
