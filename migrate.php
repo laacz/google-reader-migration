@@ -3,85 +3,59 @@
 require('config.php');
 require('greader.php');
 
+function log_msg($msg) {
+    echo date('Y-m-d H:i:s ') . $msg . "\n";
+}
+
 $source = new GReader($email, $password, true);
 $destination = new GReader($email2, $password2, true);
 
-/**
-$result = $source->getSubscriptions();
+/** Sync subscriptions and labels (a.k.a. categories, subscription tags) **/
+$src_subs = $source->getSubscriptions();
+$dst_subs = $destination->getSubscriptions();
 
-// Move subscriptions and labels
-GReader::debug('Moving subscriptions and labels');
-$i = 0;
-foreach ($result->subscriptions as $subscription) {
-    $i++;
-    GReader::debug('Feed ' . $i . ' of ' . count($result->subscriptions) . ' (' . $subscription->id . ')');
-    $ret = $destination->editSubscription($subscription->id, $subscription->title);
-    if ($subscription->categories) {
-        $tags = Array();
-        foreach ($subscription->categories as $tag) {
-            GReader::debug('    Applying label: ' . $tag->label);
-            $ret = $destination->editSubscription($subscription->id, false, "user/-/label/{$tag->label}", 'edit');
+log_msg('Moving subscriptions and labels');
+foreach ($src_subs->subscriptions as $sidx=>$ssub) {
+
+    $sub_found = false;
+
+    // Check if subscription already @destination
+    foreach ($dst_subs->subscriptions as $idx=>$dsub) {
+        if ($dsub->id == $ssub->id) {
+            $sub_found = $idx;
+            break;
         }
     }
-}
 
-
-// Move starred items
-GReader::debug('Moving starred items');
-$result = $source->getItems('user/-/state/com.google/starred', 0);
-$i = 0;
-foreach ($result->items as $entry) {
-    $i++;
-    GReader::debug('Moving item ' . $i . ' of ' . count($result->items));
-    $destination->setEntryTag($entry->id, $entry->origin->streamId, 'user/-/state/com.google/starred');
-}
-
-**/
-
-
-/**
- * All annotated entries are shared entries, aye?
- * Not all shared entries have annotations.
- *
- * a) Check, if entry already not shared at destination.
- * d) If not, add proper tag (user/-/state/com.google/broadcast)
- **/
-
-
-$result = $destination->getItems('user/-/state/com.google/broadcast', 0);
-$already_shared = Array();
-foreach ($result->items as $entry) {
-    $already_shared[$entry->alternate[0]->href] = $entry;
-    //GReader::debug($entry->alternate[0]->href);
-}
-
-GReader::debug('Resharing sharred items');
-$result = $source->getItems('user/-/state/com.google/broadcast', 10);
-// Let's do that, so we re-add shared items in reverse order.
-$result->items = array_reverse($result->items);
-$i = 0;
-foreach ($result->items as $entry) {
-    $i++;
-
-    GReader::debug($entry->alternate[0]->href);
-
-    if (isset($already_shared[$entry->alternate[0]->href])) {
-        GReader::debug('Already transferred');
-    } else {
-        GReader::debug('Resharing');
-        $ret = $destination->setEntryTag($entry->id, preg_replace('|^(user/)\d+(/.+)$|', '\1-\2', $entry->origin->streamId), "user/-/state/com.google.com/broadcast");
-        print_r($ret);
+    // Build categories array
+    $categories = Array();
+    foreach ($ssub->categories as $cat) {
+        $cat->id = preg_replace('|user/\d+/|', 'user/-/', $cat->id);
+        $categories[$cat->id] = $cat;
     }
-    break;
-    /**
-    $annotation = '';
-    GReader::debug('Resharing item ' . $i . ' of ' . count($result->items));
-    $shared = false;
-    foreach ($entry->annotations as $v) {
-        if ($source->userInfo->userId == $v->userId) {
-            $destination->annotateEntry($entry->alternate[0]->href, $v->content, $entry->title, $entry->content->content, true);
-            $shared = true;
+
+    if ($sub_found !== false) {
+        // If subscription there, check if categories are the same
+        foreach ($dsub->categories as $cat) {
+            $cat->id = preg_replace('|user/\d+/|', 'user/-/', $cat->id);
+            if (isset($categories[$cat->id])) {
+                unset($categories[$cat->id]);
+            }
         }
     }
-    **/
+
+    if ($sub_found === false) {
+        log_msg('Subscribing to ' . $ssub->id);
+        $destination->editSubscription($ssub->id, $ssub->title);
+    }
+
+    if ($categories) {
+        log_msg('Syncing labels for ' . $ssub->id);
+        foreach ($categories as $cat) {
+            log_msg('    ' . $cat->id);
+            $ret = $destination->editSubscription($ssub->id, false, $cat->id, 'edit');
+        }
+    }
+
 }
+
