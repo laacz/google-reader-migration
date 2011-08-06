@@ -15,6 +15,7 @@ $options = Array(
     'shared' => true,
     'liked' => true,
     'user-labels' => true,
+    'following' => true,
 );
 
 if (!in_array('--all', $argv)) {
@@ -33,6 +34,7 @@ if (!in_array(true, $options, true)) {
     log_msg('  --shared Shared items', false);
     log_msg('  --liked Shared items', false);
     log_msg('  --user-labels Item tags, if tag is not the same as feed category', false);
+    log_msg('  --following Follows people, source account follows', false);
     log_msg('  --all Implies all of the above', false);
     log_msg('', false);
     log_msg('Latest version can be found at Github: https://github.com/laacz/google-reader-migration', false);
@@ -223,6 +225,22 @@ if ($options['user-labels']) {
                 $destination->setEntryTag($sitem->id, $sitem->origin->streamId, $tag->id);
             }
         }
+
+    }
+
+}
+
+if ($options['following']) {
+    /** Sync friends **/
+
+    $sfriends = $source->getFriends();
+    $sfgroups = $source->getFriendsGroups();
+    $dfriends = $destination->getFriends();
+    $dfgroups = $destination->getFriendsGroups();
+
+    print_r($sfriends);
+
+    foreach ($sfriends->friends as $sfriend) {
 
     }
 

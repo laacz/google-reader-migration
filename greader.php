@@ -13,6 +13,27 @@
  * @
  */
 class GReader {
+    // Friend types
+    const FRIEND_TYPE_FOLLOWER           = 0; // this person is following the user
+    const FRIEND_TYPE_FOLLOWING          = 1; // the user is following this person
+    const FRIEND_TYPE_CONTACT            = 3; // this person is in the user's contacts list
+    const FRIEND_TYPE_PENDING_FOLLOWING  = 4; // the user is attempting to follow this person
+    const FRIEND_TYPE_PENDING_FOLLOWER   = 5; // this person is attempting to follow this user
+    const FRIEND_TYPE_ALLOWED_FOLLOWING  = 6; // the user is allowed to follow this person
+    const FRIEND_TYPE_ALLOWED_COMMENTING = 7; // the user is allowed to comment on this person's shared items
+
+    // Friend flags
+    const FRIEND_FLAG_IS_ME            =   1; // represents the current user
+    const FRIEND_FLAG_IS_HIDDEN        =   2; // current user has hidden this person from the list of people with shared items that show up people that they follow
+    const FRIEND_FLAG_USES_READER      =   4; // this person uses reader
+    const FRIEND_FLAG_IS_BLOCKED       =   8; // the user has blocked this person
+    const FRIEND_FLAG_HAS_PROFILE      =  16; // this person has created a Google Profile
+    const FRIEND_FLAG_IS_IGNORED       =  32; // this person has requested to follow the user, but the use has ignored the request
+    const FRIEND_FLAG_IS_NEW_FOLLOWER  =  64; // this person has just begun to follow the user
+    const FRIEND_FLAG_IS_ANONYMOUS     = 128; // this person doesn't have a display name set
+    const FRIEND_FLAG_HAS_SHARED_ITEMS = 256; // this person has shared items in reader
+
+
     // CURL instance
     private $ch;
     var $ch_info;
@@ -169,6 +190,33 @@ class GReader {
     }
 
     /**
+     * Gets all friends for current user.
+     *
+     * @return object something
+     */
+    function getFriends() {
+        return json_decode($this->request('https://www.google.com/reader/api/0/friend/list?output=json'));
+    }
+
+    /**
+     * Gets friend groups for current user.
+     *
+     * @return object something
+     */
+    function getFriendsGroups() {
+        return json_decode($this->request('https://www.google.com/reader/api/0/friend/groups?output=json'));
+    }
+
+    /**
+     * Gets friend access lists for current user.
+     *
+     * @return object something
+     */
+    function getFriendsACL() {
+        return json_decode($this->request('https://www.google.com/reader/api/0/friend/acl?output=json'));
+    }
+
+    /**
      * Gets all labels for current user.
      *
      * @return object list of labels.
@@ -199,6 +247,14 @@ class GReader {
         return json_decode($this->request('https://www.google.com/reader/api/0/subscription/edit?output=json', $post_fields));
     }
 
+    /**
+     * Gets itemds for specified stream.
+     *
+     * @param string $what Stream name.
+     * @param number $limit How many items to fetch. Try not to specify 0. That can lead to many, many, many items :)
+     *
+     * @return object (something)
+     */
     function getItemIds($what, $limit = 1024) {
         $this->debug('Fetching items tagged as "' . $what . '" (' . ($limit ? 'limiting to ' . $limit : 'no limit') . ')');
 
