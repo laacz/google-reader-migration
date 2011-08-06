@@ -199,6 +199,15 @@ class GReader {
         return json_decode($this->request('https://www.google.com/reader/api/0/subscription/edit?output=json', $post_fields));
     }
 
+    function getItemIds($what, $limit = 1024) {
+        $this->debug('Fetching items tagged as "' . $what . '" (' . ($limit ? 'limiting to ' . $limit : 'no limit') . ')');
+
+        $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/items/ids/?s=' . rawurldecode($what) . '&output=json&n=' . $limit . '&client=scroll'));
+
+        return $result;
+
+    }
+
     /**
      * Fetches items from a stream.
      *
@@ -254,6 +263,25 @@ class GReader {
         $post_fields = Array(
             's' => $feed_id,
             'a' => $tag,
+            'i' => $id
+        );
+
+        return json_decode($this->request('https://www.google.com/reader/api/0/edit-tag', $post_fields));
+    }
+
+    /**
+     * Removes entry tag (category, label). Works for user's tags and com.google (system) states
+     *
+     * @param string $id Entry id in (for example, tag:google.com,2005:reader/item/71d15223cd83b85d)
+     * @param string $feed_id Feed's id, from which entry came (for example, feed/http://blog.martindoms.com/feed/)
+     * @param string $tag String Tag to unassign from the entry (for example, user/-/state/com.google/starred or user/-/label/SuperLabel)
+     *
+     * @return void
+     */
+    function removeEntryTag($id, $feed_id, $tag) {
+        $post_fields = Array(
+            's' => $feed_id,
+            'r' => $tag,
             'i' => $id
         );
 
