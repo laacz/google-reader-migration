@@ -272,13 +272,21 @@ class GReader {
      *
      *  @return object (->items is an array with entries).
      */
-    function getItems($what, $limit = 1024) {
+    function getItems($what, $limit = 1024, $exclude = Array()) {
         $this->debug('Fetching items tagged as "' . $what . '" (' . ($limit ? 'limiting to ' . $limit : 'no limit') . ')');
         $continuation = '';
         $return = false;
         $count = ($limit >= 100 || !$limit) ? 100 : $limit;
+
+        if ($exclude) {
+            if (!is_array($exclude)) $exclude = Array($exclude);
+            foreach ($exclude as $k=>$v) {
+                $exclude[$k] = "xt=" . rawurlencode($v);
+            }
+        }
+
         while (true) {
-            $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/contents/' . rawurlencode($what) . '?output=json&n=' . $count . '&c=' . $continuation . '&client=scroll'));
+            $result = json_decode($this->request('http://www.google.com/reader/api/0/stream/contents/' . rawurlencode($what) . (strpos($what, '?') === false ? '?' : '&') . 'output=json&n=' . $count . '&c=' . $continuation . '&client=scroll' . ($exclude ? '&' . join('&', $exclude) : '')));
             $this->debug('Got items: ' . count($result->items). ' pcs');
 
             if (!$return) {
@@ -365,6 +373,22 @@ class GReader {
         );
 
         return json_decode($this->request('https://www.google.com/reader/api/0/item/edit', $post_fields));
+    }
+
+    /**
+     * Mark all items in a stream as read. Defaults to mark-all-everywhere-whenever-as-read.
+     *
+     * @param string $what Stream ID
+     *
+     * @return object whatever
+     */
+    function markAllAsRead($what = 'user/-/state/com.google/reading-list') {
+        $post_fields = Array(
+            's' => $what, // stream id
+            'ts' => number_format(microtime(true) * 1000000, 0, '.', ''), // Timestamp in microseconds
+        );
+
+        return json_decode($this->request('https://www.google.com/reader/api/0/mark-all-as-read', $post_fields));
     }
 
 }

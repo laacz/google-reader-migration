@@ -15,6 +15,7 @@ $options = Array(
     'shared' => true,
     'liked' => true,
     'user-labels' => true,
+    'unread' => true,
     'following' => true,
 );
 
@@ -33,6 +34,7 @@ if (!in_array(true, $options, true)) {
     log_msg('  --starred Starred items', false);
     log_msg('  --shared Shared items', false);
     log_msg('  --liked Shared items', false);
+    log_msg('  --unread Sync unread states', false);
     log_msg('  --user-labels Item tags, if tag is not the same as feed category', false);
     log_msg('  --following Follows people, source account follows', false);
     log_msg('  --all Implies all of the above', false);
@@ -229,6 +231,23 @@ if ($options['user-labels']) {
     }
 
 }
+
+
+/** Mark all items as read, mark all unread items as unread. **/
+
+if ($options['unread']) {
+
+    $items = $source->getItems('user/-/state/com.google/reading-list', 0, 'user/-/state/com.google/read');
+    $destination->markAllAsRead();
+
+    foreach ($items->items as $item) {
+        print_r($destination->removeEntryTag($item->id, $item->origin->streamId, 'user/-/state/com.google/read'));
+    }
+
+}
+
+
+/** Friends stuff. Tricky. **/
 
 if ($options['following']) {
     /** Sync friends **/
