@@ -330,7 +330,7 @@ class GReader {
             'i' => $id
         );
 
-        return json_decode($this->request('https://www.google.com/reader/api/0/edit-tag', $post_fields));
+        return json_decode($this->request('https://www.google.com/reader/api/0/edit-tag?output=json', $post_fields));
     }
 
     /**
@@ -349,7 +349,7 @@ class GReader {
             'i' => $id
         );
 
-        return json_decode($this->request('https://www.google.com/reader/api/0/edit-tag', $post_fields));
+        return json_decode($this->request('https://www.google.com/reader/api/0/edit-tag?output=json', $post_fields));
     }
 
     /**
@@ -372,7 +372,7 @@ class GReader {
             'snippet' => $snippet,
         );
 
-        return json_decode($this->request('https://www.google.com/reader/api/0/item/edit', $post_fields));
+        return json_decode($this->request('https://www.google.com/reader/api/0/item/edit?output=json', $post_fields));
     }
 
     /**
@@ -388,7 +388,42 @@ class GReader {
             'ts' => number_format(microtime(true) * 1000000, 0, '.', ''), // Timestamp in microseconds
         );
 
-        return json_decode($this->request('https://www.google.com/reader/api/0/mark-all-as-read', $post_fields));
+        return json_decode($this->request('https://www.google.com/reader/api/0/mark-all-as-read?output=json', $post_fields));
+    }
+
+    /**
+     * Edit friend.
+     *
+     * @param string $userId User ID
+     * @param string $profileUrl Link to user's profile
+     * @param string $action 'addfollowing' to follow, 'removefollowing' to unfollow
+     *
+     * TODO: implement blocking unblocking?
+     * Unblock:
+     *     action:removefollowers
+     *     u:07332626230056918067
+     *     pu:http://www.google.com/profiles/112639243179322210394
+     *     g:21
+     *
+     * Block:
+     *     action:addfollowers
+     *     u:07332626230056918067
+     *     pu:http://www.google.com/profiles/112639243179322210394
+     *     g:21
+     *
+     * @return smthn
+     */
+    function editFriend($u, $pu, $action) {
+        $post_fields = Array(
+            'u' => $u,
+            'pu' => $pu,
+            'action' => $action,
+        );
+        return json_decode($this->request('https://www.google.com/reader/api/0/friend/edit?output=json', $post_fields));
+    }
+
+    function peopleSearch($q) {
+        return json_decode($this->request('https://www.google.com/reader/api/0/people/search?output=json&q=' . rawurlencode($q)));
     }
 
 }

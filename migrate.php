@@ -37,6 +37,16 @@ if (!in_array(true, $options, true)) {
     log_msg('  --unread Sync unread states', false);
     log_msg('  --user-labels Item tags, if tag is not the same as feed category', false);
     log_msg('  --following Follows people, source account follows', false);
+
+    log_msg('', false);
+    log_msg('    +-=[ KEEP IN MIND ]=------------------------------------------------+', false);
+    log_msg('    | Friends re-friending is not tested. Might not work. Reader\'s web |', false);
+    log_msg('    | interface throws JS errors.                                       |', false);
+    log_msg('    | Social integration in Reader is a mess.                           |', false);
+    log_msg('    | What the hell. Reader API itself is a little messy.               |', false);
+    log_msg('    +-------------------------------------------------------------------+', false);
+    log_msg('', false);
+
     log_msg('  --all Implies all of the above', false);
     log_msg('', false);
     log_msg('Latest version can be found at Github: https://github.com/laacz/google-reader-migration', false);
@@ -257,10 +267,43 @@ if ($options['following']) {
     $dfriends = $destination->getFriends();
     $dfgroups = $destination->getFriendsGroups();
 
-    print_r($sfriends);
+    log_msg('Friends: old account has ' . count($sfriends->friends) . ', new one: ' . count($dfriends->friends));
 
     foreach ($sfriends->friends as $sfriend) {
+        log_msg($sfriend->displayName . ': ' . (isset($sfriend->userIds) ? join(', ', $sfriend->userIds) : '') . ', ' . (isset($sfriend->profileIds) ? join(', ', $sfriend->profileIds) : ''));
 
+        if (!isset($sfriend->userIds)) {
+            continue;
+        }
+
+        if ($sfriend->flags & GReader::FRIEND_FLAG_IS_ME) {
+            continue;
+        }
+
+        if (in_array(GReader::FRIEND_TYPE_FOLLOWING, $sfriend->types) ||
+            in_array(GReader::FRIEND_TYPE_PENDING_FOLLOWING, $sfriend->types) ||
+            in_array(GReader::FRIEND_TYPE_ALLOWED_FOLLOWING, $sfriend->types)) {
+
+            $following = false;
+            foreach ($dfriends as $dfriend) {
+                if (isset($dfriend->userIds) && ($dfriend->userIds == $sfriend->userIds)) {
+                    log_msg('You are already following ' . $sfriend->displayName);
+                    $following = true;
+                    break;
+                }
+            }
+
+            if (!$following) {
+                // Did not find any friends out of 130 pcs, who would have more than one ID.
+                print_r($destination->editFriend($sfriend->userIds[0], 'http://www.google.com/profiles/' . $sfriend->profileIds[0], 'addfollowing'));
+            }
+
+        } else {
+            log_msg('WARNUNG!');
+        }
+
+        //print_r($sfriend);
+        //break;
     }
 
 }
