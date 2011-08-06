@@ -63,4 +63,4 @@ is not official (not oficially released to public by Google).
 
 * http://code.google.com/p/pyrfeed/wiki/GoogleReaderAPI
 * http://stackoverflow.com/
-* http://quota.com/
+* http://quora.com/
