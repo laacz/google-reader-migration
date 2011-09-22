@@ -13,14 +13,18 @@ What I am able to mgirate now
 * Starred items
 * Shared items with annotations (notes, if they have one)
 * Read and unread items [1]
-* Friends I follow [2]
+* Friends I follow [2][3]
 
 [1] Read items migration is a little shaky. Although item is being marked as unread,
     it does not work. Also - items lose feature (in web interface, at least) of
     being marked unread at all.
 
 [2] Friends are being added, but Google Reader goes nuts about that. All freshly
-    added friends ar anonymouses, and have mystical ID's.
+    added friends ar anonymouses, and have mystical ID's. [3]
+    
+[3] I just noticed that all migrated friends are now proper people, not Anomymouses. It
+    over last days, I believe. If someone is going to try migration, give a feedback
+    (send an e-mail, post an Issue, or something), if friends migration works now.
 
 What I will be able to migrate once finished
 --------------------------------------------
