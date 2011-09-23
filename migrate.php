@@ -143,8 +143,9 @@ if ($options['starred']) {
 if ($options['shared']) {
 
     /** Sync shared items **/
-    $src_shared = $source->getItems('user/-/state/com.google/broadcast', 0);
+    $src_shared->items = array_reverse($source->getItems('user/-/state/com.google/broadcast', 0)->items, true);
     $dst_shared = $destination->getItems('user/-/state/com.google/broadcast', 0);
+    
 
     log_msg('Moving shared items');
     log_msg('Source has ' . count($src_shared->items) . ' and destination has ' . count($dst_shared->items));
