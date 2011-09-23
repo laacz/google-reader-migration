@@ -143,27 +143,30 @@ if ($options['starred']) {
 if ($options['shared']) {
 
     /** Sync shared items **/
-    $src_shared->items = array_reverse($source->getItems('user/-/state/com.google/broadcast', 0)->items, true);
-    $dst_shared = $destination->getItems('user/-/state/com.google/broadcast', 0);
+    $src_shared->items = array_reverse($source->getItems('user/-/state/com.google/broadcast', 10)->items, true);
+    $dst_shared = $destination->getItems('user/-/state/com.google/broadcast', 10);
     
 
     log_msg('Moving shared items');
     log_msg('Source has ' . count($src_shared->items) . ' and destination has ' . count($dst_shared->items));
-
+    
     foreach ($src_shared->items as $sitem) {
         $moved = false;
         foreach ($dst_shared->items as $ditem) {
             if ($ditem->id == $sitem->id) {
                 $moved = true;
-                //print_r($ditem);
                 break;
             }
         }
 
-        log_msg('Moving item "' . $sitem->id . '"');
         if ($moved === false) {
             log_msg('Moving item "' . $sitem->id . '"');
-            if (!$options['pretend']) $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/broadcast');
+            if (!$options['pretend']) {
+                $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/broadcast');
+            }
+            $dst_shared->items[] = $sitem;
+        } else {
+            log_msg('Already moved item "' . $sitem->id . '"');
         }
 
     }
