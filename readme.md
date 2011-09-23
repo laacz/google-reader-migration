@@ -1,9 +1,16 @@
 Google Reader migration between Google accounts
 ===============================================
 
-This script (when finished) will be used to migrate ALL of my Google Reader
-settings from current account I use for Reader (@gmail.com) to my actual
-Google Apps account (@laacz.lv).
+This script can be used to migrate ALL of yout Google Reader subscription, tags, shared/liked 
+items from one Google account to another. 
+
+I used it to successfully migrate from my legacy @gmail.com account to my actual Google Apps 
+account (@laacz.lv).
+
+How to use
+----------
+
+Download or clone. Run via PHP command-line: `php -q migrate.php`
 
 What I am able to mgirate now
 -----------------------------
