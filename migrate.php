@@ -17,6 +17,7 @@ $options = Array(
     'user-labels' => true,
     'unread' => true,
     'following' => true,
+    'pretend' => false,
 );
 
 if (!in_array('--all', $argv)) {
@@ -37,6 +38,8 @@ if (!in_array(true, $options, true)) {
     log_msg('  --unread Sync unread states', false);
     log_msg('  --user-labels Item tags, if tag is not the same as feed category', false);
     log_msg('  --following Follows people, source account follows', false);
+    log_msg('', false);
+    log_msg('  --pretend Do not actually migrate anything, just output what\' being done.', false);
 
     log_msg('', false);
     log_msg('    +-=[ KEEP IN MIND ]=------------------------------------------------+', false);
@@ -47,7 +50,7 @@ if (!in_array(true, $options, true)) {
     log_msg('    +-------------------------------------------------------------------+', false);
     log_msg('', false);
 
-    log_msg('  --all Implies all of the above', false);
+    log_msg('  --all Implies all of the above, except --pretend', false);
     log_msg('', false);
     log_msg('Latest version can be found at Github: https://github.com/laacz/google-reader-migration', false);
     log_msg('(c) 2011, Kaspars Foigts <laacz@laacz.lv>', false);
@@ -97,14 +100,14 @@ if ($options['subscriptions']) {
 
         if ($sub_found === false) {
             log_msg('Subscribing to ' . $ssub->id);
-            $destination->editSubscription($ssub->id, $ssub->title);
+            if (!$options['pretend']) $destination->editSubscription($ssub->id, $ssub->title);
         }
 
         if ($categories) {
             log_msg('Syncing labels for ' . $ssub->id);
             foreach ($categories as $cat) {
                 log_msg('    ' . $cat->id);
-                $ret = $destination->editSubscription($ssub->id, false, $cat->id, 'edit');
+                if (!$options['pretend']) $ret = $destination->editSubscription($ssub->id, false, $cat->id, 'edit');
             }
         }
 
@@ -131,7 +134,7 @@ if ($options['starred']) {
 
         if ($moved === false) {
             log_msg('Moving item "' . $sitem->id . '"');
-            $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/starred');
+            if (!$options['pretend']) $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/starred');
         }
 
     }
@@ -151,14 +154,15 @@ if ($options['shared']) {
         foreach ($dst_shared->items as $ditem) {
             if ($ditem->id == $sitem->id) {
                 $moved = true;
-                print_r($ditem);
+                //print_r($ditem);
                 break;
             }
         }
 
+        log_msg('Moving item "' . $sitem->id . '"');
         if ($moved === false) {
             log_msg('Moving item "' . $sitem->id . '"');
-            $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/broadcast');
+            if (!$options['pretend']) $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/broadcast');
         }
 
     }
@@ -185,7 +189,7 @@ if ($options['liked']) {
 
         if ($moved === false) {
             log_msg('Moving item "' . $sitem->id . '"');
-            $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/like');
+            if (!$options['pretend']) $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/like');
         }
     }
 }
@@ -234,7 +238,7 @@ if ($options['user-labels']) {
             }
             if ($moved === false) {
                 log_msg('Moving item "' . $sitem->id . '"');
-                $destination->setEntryTag($sitem->id, $sitem->origin->streamId, $tag->id);
+                if (!$options['pretend']) $destination->setEntryTag($sitem->id, $sitem->origin->streamId, $tag->id);
             }
         }
 
@@ -248,10 +252,10 @@ if ($options['user-labels']) {
 if ($options['unread']) {
 
     $items = $source->getItems('user/-/state/com.google/reading-list', 0, 'user/-/state/com.google/read');
-    $destination->markAllAsRead();
+    if (!$options['pretend']) $destination->markAllAsRead();
 
     foreach ($items->items as $item) {
-        print_r($destination->removeEntryTag($item->id, $item->origin->streamId, 'user/-/state/com.google/read'));
+        if (!$options['pretend']) $destination->removeEntryTag($item->id, $item->origin->streamId, 'user/-/state/com.google/read');
     }
 
 }
@@ -295,7 +299,7 @@ if ($options['following']) {
 
             if (!$following) {
                 // Did not find any friends out of 130 pcs, who would have more than one ID.
-                print_r($destination->editFriend($sfriend->userIds[0], 'http://www.google.com/profiles/' . $sfriend->profileIds[0], 'addfollowing'));
+                if (!$options['pretend']) $destination->editFriend($sfriend->userIds[0], 'http://www.google.com/profiles/' . $sfriend->profileIds[0], 'addfollowing');
             }
 
         } else {
