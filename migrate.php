@@ -33,11 +33,8 @@ if (!in_array(true, $options, true)) {
     log_msg('', false);
     log_msg('  --subscriptions Subscriptions (and their labels)', false);
     log_msg('  --starred Starred items', false);
-    log_msg('  --shared Shared items', false);
-    log_msg('  --liked Shared items', false);
     log_msg('  --unread Sync unread states', false);
     log_msg('  --user-labels Item tags, if tag is not the same as feed category', false);
-    log_msg('  --following Follows people, source account follows', false);
     log_msg('', false);
     log_msg('  --pretend Do not actually migrate anything, just output what\' being done.', false);
 
@@ -140,64 +137,6 @@ if ($options['starred']) {
     }
 }
 
-if ($options['shared']) {
-
-    /** Sync shared items **/
-    $src_shared->items = array_reverse($source->getItems('user/-/state/com.google/broadcast', 10)->items, true);
-    $dst_shared = $destination->getItems('user/-/state/com.google/broadcast', 10);
-    
-
-    log_msg('Moving shared items');
-    log_msg('Source has ' . count($src_shared->items) . ' and destination has ' . count($dst_shared->items));
-    
-    foreach ($src_shared->items as $sitem) {
-        $moved = false;
-        foreach ($dst_shared->items as $ditem) {
-            if ($ditem->id == $sitem->id) {
-                $moved = true;
-                break;
-            }
-        }
-
-        if ($moved === false) {
-            log_msg('Moving item "' . $sitem->id . '"');
-            if (!$options['pretend']) {
-                $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/broadcast');
-            }
-            $dst_shared->items[] = $sitem;
-        } else {
-            log_msg('Already moved item "' . $sitem->id . '"');
-        }
-
-    }
-
-}
-
-if ($options['liked']) {
-
-    /** Sync shared items **/
-    $src_liked = $source->getItems('user/-/state/com.google/like', 10);
-    $dst_liked = $destination->getItems('user/-/state/com.google/like', 0);
-
-    log_msg('Moving liked items');
-    log_msg('Source has ' . count($src_liked->items) . ' and destination has ' . count($dst_liked->items));
-
-    foreach ($src_liked->items as $sitem) {
-        $moved = false;
-        foreach ($dst_liked->items as $ditem) {
-            if ($ditem->id == $sitem->id) {
-                $moved = true;
-                break;
-            }
-        }
-
-        if ($moved === false) {
-            log_msg('Moving item "' . $sitem->id . '"');
-            if (!$options['pretend']) $destination->setEntryTag($sitem->id, $sitem->origin->streamId, 'user/-/state/com.google/like');
-        }
-    }
-}
-
 if ($options['user-labels']) {
     /** Sync user defined labels **/
 
@@ -265,53 +204,3 @@ if ($options['unread']) {
 }
 
 
-/** Friends stuff. Tricky. **/
-
-if ($options['following']) {
-    /** Sync friends **/
-
-    $sfriends = $source->getFriends();
-    $sfgroups = $source->getFriendsGroups();
-    $dfriends = $destination->getFriends();
-    $dfgroups = $destination->getFriendsGroups();
-
-    log_msg('Friends: old account has ' . count($sfriends->friends) . ', new one: ' . count($dfriends->friends));
-
-    foreach ($sfriends->friends as $sfriend) {
-        log_msg($sfriend->displayName . ': ' . (isset($sfriend->userIds) ? join(', ', $sfriend->userIds) : '') . ', ' . (isset($sfriend->profileIds) ? join(', ', $sfriend->profileIds) : ''));
-
-        if (!isset($sfriend->userIds)) {
-            continue;
-        }
-
-        if ($sfriend->flags & GReader::FRIEND_FLAG_IS_ME) {
-            continue;
-        }
-
-        if (in_array(GReader::FRIEND_TYPE_FOLLOWING, $sfriend->types) ||
-            in_array(GReader::FRIEND_TYPE_PENDING_FOLLOWING, $sfriend->types) ||
-            in_array(GReader::FRIEND_TYPE_ALLOWED_FOLLOWING, $sfriend->types)) {
-
-            $following = false;
-            foreach ($dfriends as $dfriend) {
-                if (isset($dfriend->userIds) && ($dfriend->userIds == $sfriend->userIds)) {
-                    log_msg('You are already following ' . $sfriend->displayName);
-                    $following = true;
-                    break;
-                }
-            }
-
-            if (!$following) {
-                // Did not find any friends out of 130 pcs, who would have more than one ID.
-                if (!$options['pretend']) $destination->editFriend($sfriend->userIds[0], 'http://www.google.com/profiles/' . $sfriend->profileIds[0], 'addfollowing');
-            }
-
-        } else {
-            log_msg('WARNUNG!');
-        }
-
-        //print_r($sfriend);
-        //break;
-    }
-
-}

@@ -1,11 +1,17 @@
 Google Reader migration between Google accounts
 ===============================================
 
-This script can be used to migrate ALL of yout Google Reader subscription, tags, shared/liked 
-items from one Google account to another. 
+This script can be used to migrate ALL of yout Google Reader subscription, tags items from 
+one Google account to another. 
 
 I used it to successfully migrate from my legacy @gmail.com account to my actual Google Apps 
 account (@laacz.lv).
+
+Important note
+--------------
+
+Since Google Reader has been stripped of previous social features, shared, liked items, and 
+followers migration is no more possible.
 
 How to use
 ----------
@@ -18,20 +24,11 @@ What I am able to mgirate now
 * Subscriptions
 * Subscription labels (tags, folders)
 * Starred items
-* Shared items with annotations (notes, if they have one)
 * Read and unread items [1]
-* Friends I follow [2][3]
 
 [1] Read items migration is a little shaky. Although item is being marked as unread,
     it does not work. Also - items lose feature (in web interface, at least) of
     being marked unread at all.
-
-[2] Friends are being added, but Google Reader goes nuts about that. All freshly
-    added friends ar anonymouses, and have mystical ID's. [3]
-    
-[3] I just noticed that all migrated friends are now proper people, not Anomymouses. It
-    over last days, I believe. If someone is going to try migration, give a feedback
-    (send an e-mail, post an Issue, or something), if friends migration works now.
 
 What I will be able to migrate once finished
 --------------------------------------------
